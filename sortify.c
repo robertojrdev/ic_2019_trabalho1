@@ -57,6 +57,6 @@ void print_menu(void)
 	puts("| p - next chalenge           |");
 	puts("| q - quit                    |");
 	puts("| m - print this information  |");
-	puts("| s - sow your status         |");
+	puts("| s - show your status        |");
 	puts("+-----------------------------+");
 }
