@@ -14,7 +14,7 @@ struct level
 enum EndGameCause
 {
 	Win,
-	RunOutOfRounds,
+	RanOutOfRounds,
 	Quit
 };
 
@@ -98,45 +98,51 @@ void read_inputs()
 
 	switch (input)
 	{
-	case 'p': //next challenge
+	case 'p': 	//next challenge
 		next_round();
 		break;
 
-	case 'q': //quit
+	case 'q': 	//quit
 		end_game(Quit);
 		break;
 
-	case 'm': //info
+	case 'm': 	//info
 		print_menu();
 		break;
 
-	case 's': //status
+	case 's': 	//status
 		print_status(currentLevel, score, rounds);
 		break;
 
-	default:
+	default:	//unknown input
 		puts(MSG_UNKNOWN);
 		break;
 	}
 }
 
+//play the next round
 void next_round()
 {
+	//generate random numbers for the current level
 	int questionsCount = 4;
 	struct level curLevel = levels[currentLevel];
 	int questions[questionsCount];
 	get_question_numbers(curLevel, questions);
 
+	//print question to player
 	puts(MSG_SORT);
 	printf("%d, %d, %d, %d\n", questions[0], questions[1], questions[2], questions[3]);
 
+	//read answer
 	int answer[questionsCount];
 	scanf("%d %d %d %d", &answer[0], &answer[1], &answer[2], &answer[3]);
 
+	//check if answered correctly and finish round
 	bool answeredCorrectly = check_answer(questions, answer);
 	finish_round(answeredCorrectly);
 }
 
+//finish round, update status and check for end game
 void finish_round(bool answeredCorrectly)
 {
 	//show message
@@ -158,9 +164,10 @@ void finish_round(bool answeredCorrectly)
 	if (currentLevel >= levelAmmount)
 		end_game(Win);
 	else if (rounds >= MAX_ROUNDS)
-		end_game(RunOutOfRounds);
+		end_game(RanOutOfRounds);
 }
 
+//generate a random number for each values list index using level params
 void get_question_numbers(struct level curLevel, int *values)
 {
 	int amount = sizeof(values);
@@ -171,6 +178,7 @@ void get_question_numbers(struct level curLevel, int *values)
 	}
 }
 
+//sort question array and then compare with answer, return true if values and order are equals
 bool check_answer(int *question, int *answer)
 {
 	qsort(question, sizeof(question), sizeof(int), comparision);
@@ -183,6 +191,14 @@ bool check_answer(int *question, int *answer)
 	return true;
 }
 
+//used to compare int values on qsort function
+int comparision(const void *a, const void *b)
+{
+	//need to explicitly tell that a and b are int pointers and get their values
+	return (*(int *)a - *(int *)b);
+}
+
+//finish game
 void end_game(enum EndGameCause cause)
 {
 	switch (cause)
@@ -193,7 +209,7 @@ void end_game(enum EndGameCause cause)
 		puts(MSG_OVER);
 		break;
 
-	case RunOutOfRounds:
+	case RanOutOfRounds:
 		puts(MSG_MAX);
 		print_status(currentLevel, score, rounds);
 		puts(MSG_OVER);
@@ -208,12 +224,6 @@ void end_game(enum EndGameCause cause)
 	}
 
 	gameOn = false;
-}
-
-int comparision(const void *a, const void *b)
-{
-	//need to explicitly tell that a and b are int pointers and get their values
-	return (*(int *)a - *(int *)b);
 }
 
 /* generate a random integer between min and max */
