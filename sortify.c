@@ -41,7 +41,6 @@ void finish_round(bool answeredCorrectly);
 void create_levels();
 void get_question_numbers(struct level curLevel, int *values);
 bool check_answer(int *question, int *answer);
-void update_values(bool correctAnswer);
 void end_game(enum EndGameCause cause);
 int comparision(const void *a, const void *b);
 void read_inputs();
@@ -102,19 +101,19 @@ void read_inputs()
 	case 'p': //next challenge
 		next_round();
 		break;
-	
+
 	case 'q': //quit
 		end_game(Quit);
 		break;
-	
+
 	case 'm': //info
 		print_menu();
 		break;
-	
+
 	case 's': //status
 		print_status(currentLevel, score, rounds);
 		break;
-	
+
 	default:
 		puts(MSG_UNKNOWN);
 		break;
@@ -141,10 +140,15 @@ void next_round()
 void finish_round(bool answeredCorrectly)
 {
 	//show message
-	char * message = answeredCorrectly == true ? MSG_WELL : MSG_WRONG;
+	char *message = answeredCorrectly == true ? MSG_WELL : MSG_WRONG;
 	puts(message);
 
-	update_values(answeredCorrectly);
+	//update score
+	score += answeredCorrectly == true ? INCREMENT_POINTS_ON_RIGHT_ANSWER : 0;
+
+	//update level
+	if (score > levels[currentLevel].scoreToPass)
+		currentLevel++;
 
 	//update rounds
 	rounds++;
@@ -177,16 +181,6 @@ bool check_answer(int *question, int *answer)
 	}
 
 	return true;
-}
-
-void update_values(bool correctAnswer)
-{
-	//update score
-	score += correctAnswer == true ? INCREMENT_POINTS_ON_RIGHT_ANSWER : 0;
-
-	//update level
-	if (score > levels[currentLevel].scoreToPass)
-		currentLevel++;
 }
 
 void end_game(enum EndGameCause cause)
@@ -238,7 +232,7 @@ int rand_number(const int min, const int max)
 void print_status(const int level, const int score, const int plays)
 {
 	puts("+-----------------------------+");
-	printf("| level:  %02d                  |\n", level +1);
+	printf("| level:  %02d                  |\n", level + 1);
 	printf("| points: %02d                  |\n", score);
 	printf("| plays:  %02d                  |\n", plays);
 	puts("+-----------------------------+");
