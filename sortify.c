@@ -53,13 +53,23 @@ bool gameOn = true;
 
 int main(int argc, char **argv)
 {
-	//set random seed with time
-	srand(time(0));
+	//set random seed
+	if(argc == 2)
+	{
+		char * c;
+		int seed = strtol(argv[1], &c, 10);
+		srand(seed);
+	}
+	else
+		srand(time(0));
+
 	create_levels();
 
+	//print msg and menu
 	puts(MSG_WELCOME);
 	print_menu();
 
+	//game loop
 	while (gameOn == true)
 	{
 		read_inputs();
@@ -68,6 +78,7 @@ int main(int argc, char **argv)
 	return 0;
 }
 
+//assign levels values
 void create_levels()
 {
 	levels[0].scoreToPass = 10;
@@ -91,6 +102,7 @@ void create_levels()
 	levels[4].max_value = -100;
 }
 
+//read menu inputs
 void read_inputs()
 {
 	char input;
