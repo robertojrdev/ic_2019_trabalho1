@@ -11,6 +11,15 @@ struct level
 	int max_value;
 };
 
+struct game
+{
+	int score;
+	int rounds;
+	int currentLevel;
+	struct level levels[5];
+	bool gameOn;
+};
+
 enum EndGameCause
 {
 	Win,
@@ -36,51 +45,56 @@ int rand_number(const int, const int);
 void print_status(const int, const int, const int);
 void print_menu(void);
 
-void next_round();
-void finish_round(bool answeredCorrectly);
-void create_levels();
+void initiate_game(struct game * r_game);
+void read_inputs(struct game * r_game);
+void next_round(struct game * r_game);
 void get_question_numbers(struct level curLevel, int *values);
+void finish_round(struct game * r_game, bool answeredCorrectly);
 bool check_answer(int *question, int *answer);
-void end_game(enum EndGameCause cause);
+void end_game(struct game * r_game, enum EndGameCause cause);
 int comparision(const void *a, const void *b);
-void read_inputs();
-
-int score = 0;
-int rounds = 0;
-int currentLevel = 0;
-struct level levels[5];
-bool gameOn = true;
 
 int main(int argc, char **argv)
 {
+	//start a new game
+	struct game current_game;
+	initiate_game(&current_game);
+
 	//set random seed
-	if(argc == 2)
+	if (argc == 2)
 	{
-		char * c;
+		char *c;
 		int seed = strtol(argv[1], &c, 10);
 		srand(seed);
 	}
 	else
+	{
 		srand(time(0));
-
-	create_levels();
+	}
 
 	//print msg and menu
 	puts(MSG_WELCOME);
 	print_menu();
 
 	//game loop
-	while (gameOn == true)
+	while (current_game.gameOn == true)
 	{
-		read_inputs();
+		read_inputs(&current_game);
 	}
 
 	return 0;
 }
 
-//assign levels values
-void create_levels()
+//assign game values
+void initiate_game(struct game * r_game)
 {
+	(*r_game).currentLevel = 0;
+	(*r_game).rounds = 0;
+	(*r_game).score = 0;
+	(*r_game).gameOn = true;
+
+	struct level * levels = (*r_game).levels;
+
 	levels[0].scoreToPass = 10;
 	levels[0].min_value = 0;
 	levels[0].max_value = 10;
@@ -103,41 +117,41 @@ void create_levels()
 }
 
 //read menu inputs
-void read_inputs()
+void read_inputs(struct game * r_game)
 {
 	char input;
 	scanf(" %c", &input);
 
 	switch (input)
 	{
-	case 'p': 	//next challenge
-		next_round();
+	case 'p': //next challenge
+		next_round(r_game);
 		break;
 
-	case 'q': 	//quit
-		end_game(Quit);
+	case 'q': //quit
+		end_game(r_game, Quit);
 		break;
 
-	case 'm': 	//info
+	case 'm': //info
 		print_menu();
 		break;
 
-	case 's': 	//status
-		print_status(currentLevel, score, rounds);
+	case 's': //status
+		print_status((*r_game).currentLevel, (*r_game).score, (*r_game).rounds);
 		break;
 
-	default:	//unknown input
+	default: //unknown input
 		puts(MSG_UNKNOWN);
 		break;
 	}
 }
 
 //play the next round
-void next_round()
+void next_round(struct game * r_game)
 {
 	//generate random numbers for the current level
 	int questionsCount = 4;
-	struct level curLevel = levels[currentLevel];
+	struct level curLevel = (*r_game).levels[(*r_game).currentLevel];
 	int questions[questionsCount];
 	get_question_numbers(curLevel, questions);
 
@@ -151,32 +165,32 @@ void next_round()
 
 	//check if answered correctly and finish round
 	bool answeredCorrectly = check_answer(questions, answer);
-	finish_round(answeredCorrectly);
+	finish_round(r_game, answeredCorrectly);
 }
 
 //finish round, update status and check for end game
-void finish_round(bool answeredCorrectly)
+void finish_round(struct game * r_game, bool answeredCorrectly)
 {
 	//show message
 	char *message = answeredCorrectly == true ? MSG_WELL : MSG_WRONG;
 	puts(message);
 
 	//update score
-	score += answeredCorrectly == true ? INCREMENT_POINTS_ON_RIGHT_ANSWER : 0;
+	(*r_game).score += answeredCorrectly == true ? INCREMENT_POINTS_ON_RIGHT_ANSWER : 0;
 
 	//update level
-	if (score > levels[currentLevel].scoreToPass)
-		currentLevel++;
+	if ((*r_game).score > (*r_game).levels[(*r_game).currentLevel].scoreToPass)
+		(*r_game).currentLevel++;
 
 	//update rounds
-	rounds++;
+	(*r_game).rounds++;
 
 	//finish game if achieve the end of all levels or maximum rounds
-	int levelAmmount = sizeof(levels) / sizeof(levels[0]);
-	if (currentLevel >= levelAmmount)
-		end_game(Win);
-	else if (rounds >= MAX_ROUNDS)
-		end_game(RanOutOfRounds);
+	int levelAmmount = sizeof((*r_game).levels) / sizeof((*r_game).levels[0]);
+	if ((*r_game).currentLevel >= levelAmmount)
+		end_game(r_game, Win);
+	else if ((*r_game).rounds >= MAX_ROUNDS)
+		end_game(r_game, RanOutOfRounds);
 }
 
 //generate a random number for each values list index using level params
@@ -211,19 +225,19 @@ int comparision(const void *a, const void *b)
 }
 
 //finish game
-void end_game(enum EndGameCause cause)
+void end_game(struct game * r_game, enum EndGameCause cause)
 {
 	switch (cause)
 	{
 	case Win:
 		puts(MSG_WIN);
-		print_status(currentLevel, score, rounds);
+		print_status((*r_game).currentLevel, (*r_game).score, (*r_game).rounds);
 		puts(MSG_OVER);
 		break;
 
 	case RanOutOfRounds:
 		puts(MSG_MAX);
-		print_status(currentLevel, score, rounds);
+		print_status((*r_game).currentLevel, (*r_game).score, (*r_game).rounds);
 		puts(MSG_OVER);
 		break;
 
@@ -235,7 +249,7 @@ void end_game(enum EndGameCause cause)
 		break;
 	}
 
-	gameOn = false;
+	(*r_game).gameOn = false;
 }
 
 /* generate a random integer between min and max */
