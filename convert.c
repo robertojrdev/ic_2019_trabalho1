@@ -208,7 +208,8 @@ void get_question_numbers(struct level curLevel, int *values)
 bool check_answer(int *question, int *answer)
 {
 	qsort(question, sizeof(question), sizeof(int), comparision);
-	for (int i = 0; i < sizeof(question); i++)
+	unsigned int i;
+	for (i = 0; i < sizeof(question); i++)
 	{
 		if (question[i] != answer[i])
 			return false;
