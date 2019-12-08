@@ -45,13 +45,14 @@ int rand_number(const int, const int);
 void print_status(const int, const int, const int);
 void print_menu(void);
 
-void initiate_game(struct game * r_game);
-void read_inputs(struct game * r_game);
-void next_round(struct game * r_game);
+void initiate_game(struct game *r_game);
+void read_inputs(struct game *r_game);
+void next_round(struct game *r_game);
+bool HasTheSameValues(int *a, int *b, int size);
 void get_question_numbers(struct level curLevel, int *values);
-void finish_round(struct game * r_game, bool answeredCorrectly);
+void finish_round(struct game *r_game, bool answeredCorrectly);
 bool check_answer(int *question, int *answer);
-void end_game(struct game * r_game, enum EndGameCause cause);
+void end_game(struct game *r_game, enum EndGameCause cause);
 int comparision(const void *a, const void *b);
 
 int main(int argc, char **argv)
@@ -86,14 +87,14 @@ int main(int argc, char **argv)
 }
 
 //assign game values
-void initiate_game(struct game * r_game)
+void initiate_game(struct game *r_game)
 {
 	(*r_game).currentLevel = 0;
 	(*r_game).rounds = 0;
 	(*r_game).score = 0;
 	(*r_game).gameOn = true;
 
-	struct level * levels = (*r_game).levels;
+	struct level *levels = (*r_game).levels;
 
 	levels[0].scoreToPass = 10;
 	levels[0].min_value = 0;
@@ -117,7 +118,7 @@ void initiate_game(struct game * r_game)
 }
 
 //read menu inputs
-void read_inputs(struct game * r_game)
+void read_inputs(struct game *r_game)
 {
 	char input;
 	scanf(" %c", &input);
@@ -147,29 +148,73 @@ void read_inputs(struct game * r_game)
 }
 
 //play the next round
-void next_round(struct game * r_game)
+void next_round(struct game *r_game)
 {
 	//generate random numbers for the current level
 	int questionsCount = 4;
 	struct level curLevel = (*r_game).levels[(*r_game).currentLevel];
 	int questions[questionsCount];
 	get_question_numbers(curLevel, questions);
-
+	
 	//print question to player
 	puts(MSG_SORT);
 	printf("%d, %d, %d, %d\n", questions[0], questions[1], questions[2], questions[3]);
 
-	//read answer
 	int answer[questionsCount];
-	scanf("%d %d %d %d", &answer[0], &answer[1], &answer[2], &answer[3]);
+	int max = 0;
+	while (true)
+	{
+		//read answer
+		scanf("%d %d %d %d", &answer[0], &answer[1], &answer[2], &answer[3]);
+		// printf("ans: ")
+
+		//check if the player used the same numbers from the question
+		bool answeredTheSameNumbers = HasTheSameValues(questions, answer, 4);
+		if(answeredTheSameNumbers == true)
+			break;
+
+		//if not ask again
+		puts(MSG_SORT2);
+		max++;
+		if(max >= 10)
+			break;
+	}
 
 	//check if answered correctly and finish round
 	bool answeredCorrectly = check_answer(questions, answer);
 	finish_round(r_game, answeredCorrectly);
 }
 
+//compare the values from two int arrays of the same size
+bool HasTheSameValues(int *a, int *b, int size)
+{
+	bool contain = false;
+	int mached[size];
+	for (int i = 0; i < size; i++)
+	{
+		contain = false;
+		for (int j = 0; j < size; j++)
+		{
+			if(mached[j] == 1)
+				continue;
+
+			if (a[i] == b[j])
+			{
+				contain = true;
+				mached[j] = 1;
+				break;
+			}
+		}
+
+		if (contain == false)
+			return false;
+	}
+
+	return true;
+}
+
 //finish round, update status and check for end game
-void finish_round(struct game * r_game, bool answeredCorrectly)
+void finish_round(struct game *r_game, bool answeredCorrectly)
 {
 	//show message
 	char *message = answeredCorrectly == true ? MSG_WELL : MSG_WRONG;
@@ -179,7 +224,7 @@ void finish_round(struct game * r_game, bool answeredCorrectly)
 	(*r_game).score += answeredCorrectly == true ? INCREMENT_POINTS_ON_RIGHT_ANSWER : 0;
 
 	//update level
-	if ((*r_game).score > (*r_game).levels[(*r_game).currentLevel].scoreToPass)
+	if ((*r_game).score >= (*r_game).levels[(*r_game).currentLevel].scoreToPass)
 		(*r_game).currentLevel++;
 
 	//update rounds
@@ -196,7 +241,7 @@ void finish_round(struct game * r_game, bool answeredCorrectly)
 //generate a random number for each values list index using level params
 void get_question_numbers(struct level curLevel, int *values)
 {
-	int amount = sizeof(values);
+	int amount = 4;
 	int i;
 	for (i = 0; i < amount; i++)
 	{
@@ -207,9 +252,9 @@ void get_question_numbers(struct level curLevel, int *values)
 //sort question array and then compare with answer, return true if values and order are equals
 bool check_answer(int *question, int *answer)
 {
-	qsort(question, sizeof(question), sizeof(int), comparision);
+	qsort(question, 4, sizeof(int), comparision);
 	unsigned int i;
-	for (i = 0; i < sizeof(question); i++)
+	for (i = 0; i < 4; i++)
 	{
 		if (question[i] != answer[i])
 			return false;
@@ -219,14 +264,14 @@ bool check_answer(int *question, int *answer)
 }
 
 //used to compare int values on qsort function
-int comparision(const void *a, const void *b)
+int comparision(const void *aa, const void *bb)
 {
-	//need to explicitly tell that a and b are int pointers and get their values
-	return (*(int *)a - *(int *)b);
+	const int *a = aa, *b = bb;
+	return (*a < *b) ? -1 : (*a > *b);
 }
 
 //finish game
-void end_game(struct game * r_game, enum EndGameCause cause)
+void end_game(struct game *r_game, enum EndGameCause cause)
 {
 	switch (cause)
 	{
@@ -281,7 +326,7 @@ void print_menu(void)
 {
 	puts("+-----------------------------+");
 	puts("| SORTIFY                     |");
-	puts("| p - next challenge          |");
+	puts("| p - next chalenge           |");
 	puts("| q - quit                    |");
 	puts("| m - print this information  |");
 	puts("| s - show your status        |");
