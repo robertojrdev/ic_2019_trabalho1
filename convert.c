@@ -243,6 +243,7 @@ void end_game(struct game * r_game, enum EndGameCause cause)
 		break;
 
 	case Quit:
+		print_status((*r_game).currentLevel, (*r_game).score, (*r_game).rounds);
 		puts(MSG_BYE);
 		break;
 
