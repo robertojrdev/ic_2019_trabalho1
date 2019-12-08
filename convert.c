@@ -54,6 +54,7 @@ void finish_round(struct game *r_game, bool answeredCorrectly);
 bool check_answer(int *question, int *answer);
 void end_game(struct game *r_game, enum EndGameCause cause);
 int comparision(const void *a, const void *b);
+void clean_stdin(void);
 
 int main(int argc, char **argv)
 {
@@ -166,6 +167,7 @@ void next_round(struct game *r_game)
 	{
 		//read answer
 		scanf("%d %d %d %d", &answer[0], &answer[1], &answer[2], &answer[3]);
+		clean_stdin();
 		// printf("ans: ")
 
 		//check if the player used the same numbers from the question
@@ -331,4 +333,12 @@ void print_menu(void)
 	puts("| m - print this information  |");
 	puts("| s - show your status        |");
 	puts("+-----------------------------+");
+}
+
+void clean_stdin(void)
+{
+    int c;
+    do {
+        c = getchar();
+    } while (c != '\n' && c != EOF);
 }
