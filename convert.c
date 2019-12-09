@@ -156,29 +156,27 @@ void next_round(struct game *r_game)
 	struct level curLevel = (*r_game).levels[(*r_game).currentLevel];
 	int questions[questionsCount];
 	get_question_numbers(curLevel, questions);
-	
+
 	//print question to player
 	puts(MSG_SORT);
 	printf("%d, %d, %d, %d\n", questions[0], questions[1], questions[2], questions[3]);
 
-	int answer[questionsCount];
 	int max = 0;
+	int answer[questionsCount];
+	bool answeredTheSameNumbers = false;
 	while (true)
 	{
-		//read answer
 		scanf("%d %d %d %d", &answer[0], &answer[1], &answer[2], &answer[3]);
-		clean_stdin();
-		// printf("ans: ")
 
 		//check if the player used the same numbers from the question
-		bool answeredTheSameNumbers = HasTheSameValues(questions, answer, 4);
-		if(answeredTheSameNumbers == true)
+		answeredTheSameNumbers = HasTheSameValues(questions, answer, 4);
+		if (answeredTheSameNumbers == true)
 			break;
 
-		//if not ask again
+		//if not, ask again
 		puts(MSG_SORT2);
 		max++;
-		if(max >= 10)
+		if (max >= 10)
 			break;
 	}
 
@@ -197,7 +195,7 @@ bool HasTheSameValues(int *a, int *b, int size)
 		contain = false;
 		for (int j = 0; j < size; j++)
 		{
-			if(mached[j] == 1)
+			if (mached[j] == 1)
 				continue;
 
 			if (a[i] == b[j])
@@ -206,11 +204,14 @@ bool HasTheSameValues(int *a, int *b, int size)
 				mached[j] = 1;
 				break;
 			}
+			
 		}
 
 		if (contain == false)
 			return false;
 	}
+
+	printf("YEEE\n");
 
 	return true;
 }
@@ -337,8 +338,9 @@ void print_menu(void)
 
 void clean_stdin(void)
 {
-    int c;
-    do {
-        c = getchar();
-    } while (c != '\n' && c != EOF);
+	int c;
+	do
+	{
+		c = getchar();
+	} while (c != '\n' && c != EOF);
 }
